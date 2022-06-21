@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>장소 검색 서비스</title>
+    <script type="text/javascript" src="/docs/js/jquery-3.2.1.min.js" ></script>
+    <script type="text/javascript">
+    
+    var doubleClickChecked =false;
+    
+    $(document).ready(function(){
+    	
+    	$("#searchBtn").click(function(){
+            $("#resultDiv ul").empty();
+            if(doubleClickChecked == false){
+            	search();
+            	
+            }
+    	});
+    	
+    	$("#searchBestKeyWord").click(function(){
+            $("#resultDiv ul").empty();
+            searchBestKeyWord();
+    	});
+    	
+    });
+    function search(){
+    	
+    	doubleClickChecked == true;
+
+        $.ajax({
+            url: "http://localhost:8080/v1/search/place/"+$("#vendor").val(),
+            async: false, // false 일 경우 동기 요청으로 변경
+            type: 'GET',
+            data: $("#searchForm").serialize(),
+            dataType: 'json',
+            contentType: 'application/json',
+            error: function(data) {
+            	doubleClickChecked == false;
+                alert('검색을 실패하였습니다.');
+            	
+            }, // 요청 실패.
+            success: function(resultObj) {
+            	doubleClickChecked == false;
+            	
+            	if(resultObj.success && 0 == resultObj.code){
+            		var ulObj = $("#resultDiv ul");
+                    if(0 < resultObj.list.length){
+                        for(var idx =0; idx < resultObj.list.length; idx++){
+                            ulObj.append("<li>"
+                                    +"<label>"+resultObj.list[idx]
+                                    +"</label></li>");
+                        }
+                    } else {
+                        ulObj.append("<li>요청하신 검색어의 결과가 없습니다.</li>");
+                    }
+            }else {
+                alert('검색을 실패하였습니다.');
+            }
+            }
+        });
+    }
+
+    function searchBestKeyWord(){
+    	
+    	doubleClickChecked == true;
+
+        $.ajax({
+            url: "http://localhost:8080/v1/search/place/bestkeyword",
+            async: false, // false 일 경우 동기 요청으로 변경
+            type: 'GET',
+            data: $("#searchForm").serialize(),
+          dataType: 'json',
+            contentType: 'application/json',
+            error: function(data) {
+            	doubleClickChecked == false;
+                alert('검색을 실패하였습니다.');
+                
+            }, // 요청 실패.
+            success: function(resultObj) {
+            	doubleClickChecked == false
+            	
+            	if(resultObj.success && 0 == resultObj.code){
+            		var ulObj = $("#resultDiv ul");
+            		
+                    if(0 < resultObj.list.length){
+                        for(var idx =0; idx < resultObj.list.length; idx++){
+                            ulObj.append("<li>"
+                                    +"<label>"+"랭크 "+resultObj.list[idx].rank + "||  키워드 : "+ resultObj.list[idx].keyword +"||  횟수 : " + resultObj.list[idx].count
+                                    +"</label></li>");
+                        }
+                    } else {
+                        ulObj.append("<li>요청하신 검색어의 결과가 없습니다.</li>");
+                    }
+            	 }else {
+                     alert('검색을 실패하였습니다.');
+                 }
+            }
+        });
+    }
+    </script>
+</head>
+<body>
+<div id="wrap">
+    <div id="searchDiv" >
+        <form name="searchForm" id="searchForm">
+	        <h3>장소 검색</h3>
+	        <label>장소<input type="text" id="query" name="query" /></label>
+		    <label>검색엔진
+		         <select name="vendor" id="vendor">
+		         	 <option value="all" selected="selected">전체 검색(Kakao, Naver)</option>
+		             <option value="kakao" selected="selected">Kakao</option>
+		             <option value="naver" selected="selected">Naver</option>
+		         </select>
+		    </label><br><br>
+	        <button id="searchBtn" type="button">검색</button>
+	        <button id="searchBestKeyWord" type="button">최근 검색 순위</button>
+	        <div id="resultDiv">
+            <ul>
+            </ul>
+        </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
